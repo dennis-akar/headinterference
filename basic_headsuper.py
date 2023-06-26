@@ -16,7 +16,41 @@ identity matrix as embedding and unembedding.
 12 basis residual stream.
 """
 
+# restart kernel requirement
+
+pls_restart = False
+if "pls_restart" in globals() and eval("pls_restart") or "pls_restart_after_one_run" in globals() and eval("pls_restart_after_one_run"):
+    print("i kill session" )
+    print("now i die bye have a nice day")
+    exit()
+pls_restart_after_one_run = False
+
 # imports
+
+import sys, os, subprocess
+from functools import partial
+sub_run = partial(subprocess.run, shell=True, check=True)
+try:
+    import einops, jaxtyping, transformer_lens, circuitsvis
+except ModuleNotFoundError:
+    sub_run = partial(subprocess.run, shell=True, check=True)
+    sub_run("pip install einops")
+    sub_run("pip install jaxtyping")
+    sub_run("pip install transformer_lens")
+    sub_run("pip install git+https://github.com/callummcdougall/CircuitsVis.git#subdirectory=python")
+try:
+    import ioi_dataset, path_patching
+except ModuleNotFoundError:
+    print("Downloading and installing path patching files in", os.getcwd())
+    sub_run("wget https://github.com/callummcdougall/path_patching/archive/refs/heads/main.zip")
+    sub_run("unzip main.zip 'path_patching-main/ioi_dataset.py'")
+    sub_run("unzip main.zip 'path_patching-main/path_patching.py'")
+    sys.path.append("path_patching-main")
+    os.remove("main.zip")
+    os.rename("path_patching-main/ioi_dataset.py", "ioi_dataset.py")
+    os.rename("path_patching-main/path_patching.py", "path_patching.py")
+    os.rmdir("path_patching-main")
+
 
 from dataclasses import dataclass
 import math
@@ -37,12 +71,6 @@ from typing import Tuple, List, Optional, Dict
 from jaxtyping import Float, Int
 from torch import Tensor
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
-
-if "pls_restart" in globals() and eval("pls_restart"):
-    print("pls_restart" )
-    print("now i die bye have a nice day")
-    exit()
-pls_restart = False
 
 
 # dataset
